@@ -1,0 +1,108 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+// Define your Prisma models
+model Company {
+  companyID   BigInt                @id
+  name        String
+  description String?
+  companySize String?
+  state       String?
+  country     String?
+  address     String?
+  industries  Company_industries[]
+  specialties Company_specialties[]
+  JobPostings JobPostings[]
+}
+
+model Company_industries {
+  companyID BigInt
+  industry  String
+  Company   Company @relation(fields: [companyID], references: [companyID])
+
+  @@id([companyID, industry])
+}
+
+model Company_specialties {
+  companyID BigInt
+  specialty String
+  Company   Company @relation(fields: [companyID], references: [companyID])
+
+  @@id([companyID, specialty])
+}
+
+model JobPostings {
+  jobID           BigInt                  @id
+  companyID       BigInt
+  title           String
+  description     String?                 @db.Text
+  salary          Float?
+  jobPostURL      String?
+  location        String?
+  experienceLevel String?
+  workType        String?
+  Company         Company                 @relation(fields: [companyID], references: [companyID])
+  jobSkills       JobPostings_jobSkills[]
+  benefits        JobPostings_benefits[]
+  Applications    Application[]
+}
+
+model JobPostings_jobSkills {
+  jobID       BigInt
+  jobSkills   String
+  JobPostings JobPostings @relation(fields: [jobID], references: [jobID])
+
+  @@id([jobID, jobSkills])
+}
+
+model JobPostings_benefits {
+  jobID       BigInt
+  benefits    String
+  JobPostings JobPostings @relation(fields: [jobID], references: [jobID])
+
+  @@id([jobID, benefits])
+}
+
+model Candidate {
+  candidateID     BigInt                      @id @default(autoincrement())
+  fullName        String
+  email           String                      @unique
+  passwordHash    String
+  mobileNumbers   Candidate_mobileNumber[]
+  candidateSkills Candidate_candidateSkills[]
+  Applications    Application[]
+}
+
+model Candidate_mobileNumber {
+  candidateID  BigInt
+  mobileNumber String
+  Candidate    Candidate @relation(fields: [candidateID], references: [candidateID])
+
+  @@id([candidateID, mobileNumber])
+}
+
+model Candidate_candidateSkills {
+  candidateID     BigInt
+  candidateSkills String
+  Candidate       Candidate @relation(fields: [candidateID], references: [candidateID])
+
+  @@id([candidateID, candidateSkills])
+}
+
+model Application {
+  applicationID BigInt      @id
+  candidateID   BigInt
+  jobID         BigInt
+  resume        String?
+  Candidate     Candidate   @relation(fields: [candidateID], references: [candidateID])
+  JobPostings   JobPostings @relation(fields: [jobID], references: [jobID])
+}
